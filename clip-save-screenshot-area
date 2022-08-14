@@ -1,0 +1,7 @@
+#!/bin/bash
+
+screenshot_dir="${HOME}/Pictures/Screenshots"
+timestamp=$(date +%Y_%m_%d_%H_%M_%S_%N)
+output_file="${screenshot_dir}/${timestamp}.png"
+
+gnome-screenshot -acf ${output_file}
