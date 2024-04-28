@@ -5,3 +5,28 @@ timestamp=$(date +%Y_%m_%d_%H_%M_%S_%N)
 output_file="${screenshot_dir}/${timestamp}.png"
 
 gnome-screenshot -acf ${output_file}
+
+# Workaround because gnome-screenshot's clipboard functionality
+# doesn't seem to work on wayland
+
+# Wait for the file to appear
+timeout=6000
+while [[ ! -f "${output_file}" && $timeout -gt 0 ]]; do
+    sleep 0.01
+    ((timeout--))
+done
+
+# Check if the file exists after waiting
+if [[ -f "${output_file}" ]]; then
+    while lsof -p $(pgrep -f gnome-screenshot) | grep -q "${output_file}"; do
+        echo "Waiting for file to finish writing"
+        sleep 0.01
+    done
+    sync
+
+    cat "${output_file}" | xclip -i -selection clipboard -target image/png
+    echo "Screenshot saved as ${output_file} and copied to clipboard."
+else
+    echo "Screenshot file not found after waiting for one minute. Exiting."
+    exit 1
+fi
